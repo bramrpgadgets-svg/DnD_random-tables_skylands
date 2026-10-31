@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#20251f">
+<title>Random Tables</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--bg:#171b17;--panel:#222922;--panel2:#2b342c;--line:#414b41;--text:#f1f0e8;--muted:#b5b9aa;--accent:#c7a96b;--accent2:#e0c78f;--danger:#d87970}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+header{position:sticky;top:0;z-index:5;background:#20251ff2;border-bottom:1px solid var(--line);padding:13px 16px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px)}
+h1{font-size:19px;margin:0;letter-spacing:.3px}h2{font-size:19px;margin:0 0 12px}h3{font-size:15px;margin:0 0 8px;color:var(--accent2)}
+main{max-width:760px;margin:auto;padding:16px 14px 100px}.tabs{display:flex;gap:7px;padding:12px 14px 0;max-width:760px;margin:auto}
+.tab{flex:1;background:transparent;border:1px solid var(--line);color:var(--muted);padding:10px 6px;border-radius:10px;font-weight:650}
+.tab.active{background:var(--accent);color:#1b1d17;border-color:var(--accent)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px;margin:0 0 13px}
+.row{display:flex;gap:9px;align-items:center}.between{justify-content:space-between}.grow{flex:1;min-width:0}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+.btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:10px 13px;border-radius:10px;font-weight:650}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#1c1e18}
+.btn.small{padding:7px 10px;font-size:13px}.btn.danger{color:#ffc0b8;border-color:#744640}
+input,select,textarea{width:100%;background:#171d18;border:1px solid var(--line);border-radius:9px;color:var(--text);padding:10px;margin-top:5px}
+textarea{min-height:74px;resize:vertical}.field{margin:10px 0}.field label{font-size:13px;color:var(--muted);display:block}
+.muted{color:var(--muted);font-size:13px}.pill{font-size:12px;color:var(--accent2);border:1px solid var(--line);border-radius:30px;padding:3px 8px}
+.tableitem{padding:13px 0;border-bottom:1px solid var(--line)}.tableitem:last-child{border:0}
+.result{border-left:3px solid var(--accent);padding:10px 12px;background:#1a211b;border-radius:0 9px 9px 0;margin:9px 0}
+.result strong{color:var(--accent2)}.result p{margin:4px 0 0;white-space:pre-wrap}
+.empty{text-align:center;padding:30px 15px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.entry{border:1px solid var(--line);padding:10px;border-radius:10px;margin:8px 0;background:#1b211b}
+.entrygrid{display:grid;grid-template-columns:70px 70px 1fr;gap:7px}
+.entrygrid input{min-width:0}.entrygrid .wide{grid-column:1/-1}
+hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+.hidden{display:none!important}
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#eee8d8;color:#1b1d17;padding:10px 15px;border-radius:30px;display:none;z-index:10;font-weight:650;box-shadow:0 5px 25px #0008}
+@media(min-width:600px){main{padding-top:22px}.tabs{padding-top:16px}}
+</style>
+</head>
+<body>
+<header><h1>🎲 Random Tables</h1><span class="pill">LOCAL · OFFLINE</span></header>
+<nav class="tabs">
+<button class="tab active" data-tab="roll">Roll</button>
+<button class="tab" data-tab="tables">Tables</button>
+<button class="tab" data-tab="saved">Saved</button>
+<button class="tab" data-tab="data">Data</button>
+</nav>
+<main>
+<section id="rollView">
+<div class="card">
+<div class="row between"><h2>Roll a table</h2><span class="pill" id="tableCount">0 tables</span></div>
+<div class="field"><label for="chooseTable">Table</label><select id="chooseTable"></select></div>
+<div class="grid2">
+<div class="field"><label for="rollCount">Number of rolls</label><input id="rollCount" type="number" min="1" max="100" value="1"></div>
+<div class="field"><label for="rollMode">Duplicate results</label><select id="rollMode"><option value="allow">Allow duplicates</option><option value="unique">No duplicates (if possible)</option></select></div>
+</div>
+<button class="btn primary" id="rollBtn" style="width:100%">🎲 Roll</button>
+<div id="results"></div>
+</div>
+<div class="muted">Tip: save individual results you want to keep for later in your campaign.</div>
+</section>
+<section id="tablesView" class="hidden">
+<div class="row between" style="margin-bottom:12px"><h2>Your tables</h2><button class="btn primary" id="newTable">＋ New table</button></div>
+<div id="tableList"></div>
+</section>
+<section id="editorView" class="hidden">
+<div class="row between"><h2 id="editorTitle">New table</h2><button class="btn small" id="backTables">← Tables</button></div>
+<div class="card">
+<div class="field"><label>Table name</label><input id="tableName" placeholder="e.g. Strange wilderness encounters"></div>
+<div class="grid2">
+<div class="field"><label>Roll type</label><select id="tableType"><option value="range">Dice ranges</option><option value="weight">Weighted entries</option></select></div>
+<div class="field"><label>Die size (for ranges)</label><select id="dieSides"><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option selected>20</option><option>100</option></select></div>
+</div>
+<p class="muted" id="typeHelp">Ranges should cover the die from 1 to its maximum. Gaps become “no result”.</p>
+<hr>
+<div class="row between"><h3>Entries</h3><button class="btn small" id="addEntry">＋ Add entry</button></div>
+<div id="entries"></div>
+<button class="btn primary" id="saveTable" style="width:100%;margin-top:12px">Save table</button>
+</div>
+</section>
+<section id="savedView" class="hidden"><h2>Saved results</h2><div id="savedList"></div></section>
+<section id="dataView" class="hidden">
+<h2>Data & backup</h2>
+<div class="card">
+<h3>Export your tables</h3><p class="muted">Download a JSON backup containing your tables and saved results.</p>
+<button class="btn primary" id="exportBtn" style="width:100%">↓ Export backup</button>
+</div>
+<div class="card">
+<h3>Import a backup</h3><p class="muted">Import a previously exported JSON file. This replaces the current data.</p>
+<input type="file" id="importFile" accept=".json,application/json">
+<button class="btn" id="importBtn" style="width:100%;margin-top:10px">Import backup</button>
+</div>
+<div class="card">
+<h3>Storage</h3><p class="muted">Data is stored in this browser on this device. Clearing browser data may erase it, so export backups regularly.</p>
+<button class="btn danger" id="resetBtn">Delete all app data</button>
+</div>
+</section>
+</main>
+<div id="toast"></div>
+<script>
+const KEY='dnd-random-tables-v1';
+const uid=()=>Math.random().toString(36).slice(2,10);
+const starter=[
+{id:uid(),name:'Wilderness Encounters',type:'range',die:20,entries:[
+{min:1,max:3,text:'A weathered shrine, still warm to the touch.'},{min:4,max:6,text:'A caravan of insect traders crosses your path.'},{min:7,max:9,text:'A wounded beast watches you from the undergrowth.'},{min:10,max:12,text:'You find a trail of enormous footprints.'},{min:13,max:15,text:'A traveller offers a strange piece of local gossip.'},{min:16,max:18,text:'A sudden change in weather forces a choice.'},{min:19,max:20,text:'Something ancient stirs beneath the earth.'}]},
+{id:uid(),name:'Strange NPCs',type:'weight',die:20,entries:[
+{weight:3,text:'A cheerful undertaker who collects last words.'},{weight:3,text:'A silent child carrying a cage full of moths.'},{weight:2,text:'A priest who has forgotten the name of their god.'},{weight:4,text:'A merchant selling maps of places that no longer exist.'},{weight:3,text:'A pilgrim walking backwards towards their destination.'},{weight:5,text:'A tired guard who desperately wants to quit.'}]}
+];
+let state=load();
+function load(){try{let x=JSON.parse(localStorage.getItem(KEY));if(x&&Array.isArray(x.tables))return {tables:x.tables,saved:x.saved||[],history:x.history||[]}}catch(e){}return {tables:starter,saved:[],history:[]}}
+function persist(){localStorage.setItem(KEY,JSON.stringify(state))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toast(s){let t=document.getElementById('toast');t.textContent=s;t.style.display='block';setTimeout(()=>t.style.display='none',1900)}
+let activeTab='roll',editingId=null;
+function showTab(tab){activeTab=tab;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));['roll','tables','saved','data','editor'].forEach(x=>document.getElementById(x+'View')?.classList.toggle('hidden',x!==tab));render()}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+function render(){renderSelect();renderTables();renderSaved();document.getElementById('tableCount').textContent=state.tables.length+' tables'}
+function renderSelect(){let s=document.getElementById('chooseTable'),old=s.value;s.innerHTML=state.tables.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');if(state.tables.some(t=>t.id===old))s.value=old}
+function renderTables(){let el=document.getElementById('tableList');if(!state.tables.length){el.innerHTML='<div class="empty">No tables yet. Create your first one.</div>';return}
+el.innerHTML=state.tables.map(t=>`<div class="card"><div class="row between"><div class="grow"><strong>${esc(t.name)}</strong><div class="muted">${t.entries.length} entries · ${t.type==='range'?'d'+t.die+' ranges':'weighted'}</div></div><button class="btn small" data-edit="${t.id}">Edit</button><button class="btn small danger" data-del="${t.id}">×</button></div></div>`).join('');
+el.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editTable(b.dataset.edit));el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>deleteTable(b.dataset.del))}
+function renderSaved(){let el=document.getElementById('savedList');if(!state.saved.length){el.innerHTML='<div class="empty">Nothing saved yet.</div>';return}
+el.innerHTML=[...state.saved].reverse().map((r,i)=>`<div class="card"><div class="row between"><span class="pill">${esc(r.tableName)} · ${esc(r.rollLabel)}</span><button class="btn small danger" data-unsave="${state.saved.length-1-i}">Remove</button></div><p>${esc(r.text)}</p><div class="muted">${new Date(r.date).toLocaleString()}</div></div>`).join('');
+el.querySelectorAll('[data-unsave]').forEach(b=>b.onclick=()=>{state.saved.splice(+b.dataset.unsave,1);persist();renderSaved()})}
+function editTable(id){let t=state.tables.find(x=>x.id===id);editingId=id;document.getElementById('editorTitle').textContent='Edit table';document.getElementById('tableName').value=t.name;document.getElementById('tableType').value=t.type;document.getElementById('dieSides').value=t.die;document.getElementById('dieSides').disabled=t.type!=='range';renderEntries(t.entries);showTab('editor')}
+function newTable(){editingId=null;document.getElementById('editorTitle').textContent='New table';document.getElementById('tableName').value='';document.getElementById('tableType').value='range';document.getElementById('dieSides').value='20';document.getElementById('dieSides').disabled=false;renderEntries([{min:1,max:20,text:''}]);showTab('editor')}
+function renderEntries(entries){let el=document.getElementById('entries');el.innerHTML='';entries.forEach((e,i)=>addEntryNode(e,i))}
+function addEntryNode(e={},i=null){let el=document.getElementById('entries'),idx=i===null?el.children.length:i;let div=document.createElement('div');div.className='entry';div.innerHTML=`<div class="row between"><strong class="muted">Entry ${idx+1}</strong><button type="button" class="btn small danger remove">Remove</button></div><div class="entrygrid rangefields"><input aria-label="From" type="number" min="1" placeholder="From" value="${e.min??''}"><input aria-label="To" type="number" min="1" placeholder="To" value="${e.max??''}"></div><div class="field"><label>Result text</label><textarea placeholder="Describe the result">${esc(e.text||'')}</textarea></div><div class="field"><label>Optional: link to another table</label><select class="linktable"><option value="">No linked table</option>${state.tables.filter(t=>t.id!==editingId).map(t=>`<option value="${t.id}" ${e.linkTableId===t.id?'selected':''}>${esc(t.name)}</option>`).join('')}</select></div><input class="weightfield" type="number" min="0.01" step="0.01" placeholder="Weight (e.g. 2)" value="${e.weight??1}">`;
+div.querySelector('.remove').onclick=()=>{div.remove();renumberEntries()};el.appendChild(div);applyEntryMode()}
+function renumberEntries(){document.querySelectorAll('#entries .entry strong').forEach((e,i)=>e.textContent='Entry '+(i+1))}
+function applyEntryMode(){let type=document.getElementById('tableType').value;document.querySelectorAll('.rangefields').forEach(e=>e.classList.toggle('hidden',type!=='range'));document.querySelectorAll('.weightfield').forEach(e=>e.classList.toggle('hidden',type!=='weight'));document.getElementById('dieSides').disabled=type!=='range';document.getElementById('typeHelp').textContent=type==='range'?'Ranges should cover the die from 1 to its maximum. Gaps become “no result”.':'Weights determine relative probability. A weight of 2 is twice as likely as a weight of 1.'}
+document.getElementById('tableType').onchange=applyEntryMode;
+document.getElementById('addEntry').onclick=()=>addEntryNode({text:''});
+document.getElementById('newTable').onclick=newTable;document.getElementById('backTables').onclick=()=>showTab('tables');
+document.getElementById('saveTable').onclick=()=>{
+let name=document.getElementById('tableName').value.trim(),type=document.getElementById('tableType').value,die=+document.getElementById('dieSides').value;
+if(!name){toast('Give your table a name');return}
+let entries=[...document.querySelectorAll('#entries .entry')].map(d=>{let ins=d.querySelectorAll('.rangefields input');return {min:+ins[0].value,max:+ins[1].value,text:d.querySelector('textarea').value.trim(),weight:+d.querySelector('.weightfield').value||1,linkTableId:d.querySelector('.linktable').value||null}}).filter(e=>e.text);
+if(!entries.length){toast('Add at least one entry');return}
+if(type==='range'){for(let e of entries){if(!e.min||!e.max||e.min>e.max||e.min<1||e.max>die){toast('Check the range values');return}}}
+let t={id:editingId||uid(),name,type,die,entries};let ix=state.tables.findIndex(x=>x.id===editingId);if(ix>=0)state.tables[ix]=t;else state.tables.push(t);persist();showTab('tables');toast('Table saved')}
+function deleteTable(id){if(!confirm('Delete this table?'))return;state.tables=state.tables.filter(t=>t.id!==id);state.tables.forEach(t=>t.entries.forEach(e=>{if(e.linkTableId===id)e.linkTableId=null}));persist();render()}
+function pickEntry(t){if(t.type==='range'){let n=1+Math.floor(Math.random()*t.die);let e=t.entries.find(x=>n>=x.min&&n<=x.max);return {entry:e,rollLabel:'d'+t.die+' = '+n,roll:n}}let total=t.entries.reduce((s,e)=>s+(+e.weight||0),0);if(total<=0)return {entry:null,rollLabel:'weighted',roll:null};let n=Math.random()*total;for(let e of t.entries){n-=+e.weight||0;if(n<0)return {entry:e,rollLabel:'weighted',roll:null}}return {entry:t.entries.at(-1),rollLabel:'weighted',roll:null}}
+function resolveLinked(entry,depth=0){if(!entry||!entry.linkTableId||depth>4)return '';let t=state.tables.find(x=>x.id===entry.linkTableId);if(!t)return '';let r=pickEntry(t);return r.entry?`\\n↳ ${t.name}: ${r.entry.text}${resolveLinked(r.entry,depth+1)}`:''}
+let latest=[];
+document.getElementById('rollBtn').onclick=()=>{
+let t=state.tables.find(x=>x.id===document.getElementById('chooseTable').value);if(!t){toast('Create a table first');return}
+let count=Math.max(1,Math.min(100,+document.getElementById('rollCount').value||1)),unique=document.getElementById('rollMode').value==='unique',results=[];
+for(let i=0;i<count;i++){let r=pickEntry(t);if(unique&&t.type==='weight'&&results.length<t.entries.length){let tries=0;while(results.some(x=>x.entry===r.entry)&&tries++<30)r=pickEntry(t)}
+let text=r.entry?r.entry.text+(resolveLinked(r.entry)||''):'No result for '+r.roll;
+results.push({entry:r.entry,text,rollLabel:r.rollLabel,roll:r.roll})}
+latest=results;state.history.push(...results.map(r=>({tableId:t.id,tableName:t.name,text:r.text,rollLabel:r.rollLabel,date:Date.now()})));if(state.history.length>300)state.history=state.history.slice(-300);persist();
+let el=document.getElementById('results');el.innerHTML=`<hr><div class="row between"><h3>Results (${results.length})</h3><button class="btn small" id="saveAll">☆ Save all</button></div>`+results.map((r,i)=>`<div class="result"><div class="row between"><strong>#${i+1} · ${esc(r.rollLabel)}</strong><button class="btn small" data-save="${i}">☆ Save</button></div><p>${esc(r.text)}</p></div>`).join('');
+el.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>saveResult(t,results[+b.dataset.save]));document.getElementById('saveAll').onclick=()=>{results.forEach(r=>saveResult(t,r,true));toast('All results saved')}}
+function saveResult(t,r,silent=false){state.saved.push({tableId:t.id,tableName:t.name,text:r.text,rollLabel:r.rollLabel,date:Date.now()});persist();renderSaved();if(!silent)toast('Result saved')}
+document.getElementById('exportBtn').onclick=()=>{let blob=new Blob([JSON.stringify({version:1,...state},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='dnd-random-tables-backup.json';a.click();URL.revokeObjectURL(a.href)};
+document.getElementById('importBtn').onclick=async()=>{let f=document.getElementById('importFile').files[0];if(!f){toast('Choose a JSON file');return}try{let x=JSON.parse(await f.text());if(!Array.isArray(x.tables)||!Array.isArray(x.saved))throw Error();if(!confirm('Replace current tables and saved results with this backup?'))return;state={tables:x.tables,saved:x.saved,history:x.history||[]};persist();render();toast('Backup imported')}catch(e){toast('Could not read this backup')}}
+document.getElementById('resetBtn').onclick=()=>{if(confirm('Permanently delete all local app data?')){state={tables:[],saved:[],history:[]};persist();render();document.getElementById('results').innerHTML='';toast('Data deleted')}}
+render();applyEntryMode();
+if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body></html>
