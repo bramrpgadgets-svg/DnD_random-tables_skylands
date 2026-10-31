@@ -1,9 +1,20 @@
 {
+  "id": "./",
   "name": "D&D Random Tables",
-  "short_name": "Random Tables",
-  "start_url": "./index.html",
+  "short_name": "D&D Tables",
+  "description": "Offline random tables en generators voor D&D.",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#171b17",
-  "theme_color": "#20251f",
-  "icons": []
+  "background_color": "#151b22",
+  "theme_color": "#202a35",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
